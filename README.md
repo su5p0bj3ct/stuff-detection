@@ -161,3 +161,29 @@ ckpt3 = train_with_resume(
     batch=8
 )
 ```
+
+### 4. Инференс и ансамблирование
+```python
+# Предсказания для всех моделей
+labels1 = predict_and_save_txt("yolo26n_best.pt", "pred_yolo26n", imgsz=640)
+labels2 = predict_and_save_txt("yolov8m_best.pt", "pred_yolov8m", imgsz=768)
+labels3 = predict_and_save_txt("yolov8l_best.pt", "pred_yolov8l", imgsz=768)
+
+# SAHI инференс для лучшей модели
+run_sahi_on_test(detection_model, TEST_DIR, SAHI_TXT_DIR)
+
+# Weighted Box Fusion
+boxes_wbf, scores_wbf, labels_wbf = weighted_boxes_fusion(
+    all_boxes, all_scores, all_labels,
+    iou_thr=0.5,
+    skip_box_thr=0.001
+)
+
+# Генерация submission.csv (только staff)
+build_submission_from_solution_order(
+    solution_csv=SAMPLE_SUB,
+    preds_dir=str(ENSEMBLE_TXT_DIR),
+    output_csv="submission.csv",
+    keep_only_class=1  # staff
+)
+```
